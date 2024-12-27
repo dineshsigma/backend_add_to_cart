@@ -78,7 +78,7 @@ let login = (email, password) => {
   return new Promise((resolve, reject) => {
     let emailChecksql = "select * from users where user_email=?";
     connection.query(emailChecksql, [email], (error, data) => {
-      console.log("data", data);
+      // console.log("data", data);
       let compare = compareSync(password, data[0].password);
       if (compare) {
         return resolve(data);
@@ -91,15 +91,22 @@ let login = (email, password) => {
 app.post("/login", signin);
 
 async function signin(req, res) {
-  let data = req.body;
-  let loginData = await login(data.email, data.password);
-  let token = jwt.sign(loginData[0], "tastyfood", { expiresIn: "100d" });
-  return res.json({
-    status: 200,
-    message: "login successfully",
-    data: loginData,
-    token: token,
-  });
+  try {
+    let data = req.body;
+    let loginData = await login(data.email, data.password);
+    let token = jwt.sign(loginData[0], "tastyfood", { expiresIn: "100d" });
+    return res.json({
+      status: 200,
+      message: "login successfully",
+      data: loginData,
+      token: token,
+    });
+  } catch (error) {
+    return res.json({
+      status: false,
+      message: "Invalid Crenditials",
+    });
+  }
 }
 
 let createOrders = (
@@ -144,8 +151,8 @@ app.post("/createOrders", orders);
 async function orders(req, res) {
   try {
     let data = req.body;
-    console.log("ordersData",data);
-    console.log("req.user_details",req.user_details)
+    console.log("ordersData", data);
+    console.log("req.user_details", req.user_details);
     data.order_id = uuidv4();
     data.created_date = new Date();
     data.user_id = req.user_details?.user_id;
@@ -166,10 +173,45 @@ async function orders(req, res) {
       orderResponse: orderResponse,
     });
   } catch (error) {
-    console.log("error",error);
+    console.log("error", error);
     return res.json({
       status: false,
       message: "Order Is Not Created",
+    });
+  }
+}
+
+// ------------------ Get List Of Orders --------------------------------//
+
+let orderData = (user_id) => {
+  return new Promise((resolve, reject) => {
+    let ordersql = "select * from orders where user_id = ?";
+    connection.query(ordersql, [user_id], (error, results) => {
+      if (error) {
+        return reject(error);
+      } else {
+        return resolve(results);
+      }
+    });
+  });
+};
+
+app.get("/orderlist", orderlist);
+
+async function orderlist(req, res) {
+  try {
+    let user_id = req.user_details.user_id;
+    let orderResponse = await orderData(user_id);
+    return res.json({
+      status:true,
+      message:"Order Details Getting Success",
+      orderResponse:orderResponse
+    })
+    
+  } catch (error) {
+    return res.json({
+      status: false,
+      message: "Order List Is Not Getting",
     });
   }
 }
