@@ -21,3 +21,13 @@
     created_date DATE,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
+
+# How to Run the Backend Code:
+step:1 create one folder name as Server or Backend
+step:2 Enter Command ->npm init
+step:3 npm install --- install the dependecies
+step:4 node server.js
+step:5 check server is running on which port number and db is connected or not if not check the  db crenditials.
+step:6 create user throught postman
+step:7 test all the apis is working or not.
+
